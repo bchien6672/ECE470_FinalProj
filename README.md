@@ -23,3 +23,7 @@ In order to begin this endeavor, I first downloaded the V-REP executable file ci
 15. Move the main base and monitor joints
 
 Future Plans: Migrate to GitHub, implement full joint dictionary so that things aren't hard code, calibrate robot
+
+Checkpoint 2 (3/12)
+
+This week involved implementing Forward Kinematics to the Baxter Robot
