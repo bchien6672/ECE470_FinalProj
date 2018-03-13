@@ -1,7 +1,7 @@
 import vrep
 import time
 import numpy as np
-
+import scipy as sp
 
 
 def initialize_sim():
@@ -29,7 +29,6 @@ def declarejointvar(clientID):
                    'Baxter_leftArm_joint7', 'Baxter_rightArm_joint7', 'Baxter_verticalJoint', 'Baxter_rotationJoint',
                    'Baxter_monitorJoint']
 
-
     for joint in joint_names:
         result, joint_handle = vrep.simxGetObjectHandle(clientID, joint, vrep.simx_opmode_blocking)
         if joint in joint_bodynames:
@@ -49,57 +48,118 @@ def declarejointvar(clientID):
         joint_library[joint]['Result'] = result
         joint_library[joint]['Joint Handler'] = joint_handle
 
-    print body_joints, Rarm_joints, Larm_joints
+    return joint_library, Larm_joints, Rarm_joints, body_joints, joint_bodynames, joint_Rarm, joint_Larm
 
-    return joint_library
+def deriveFK(clientID, Larm_theta, Rarm_theta, body_theta, Larm_joints, Rarm_joints, body_joints):
+    #convert each theta into radians
+    Larm_thetarad = []
+    Rarm_thetarad = []
+    body_thetarad = []
 
-    #print '111111111111', joint_library
-    #for joint in joint_library.keys():
-        #item = joint_library[joint]['Result']
-        #if item != vrep.simx_return_ok:
-            #raise Exception('Cannot get object handle of one of the joints. Check again')
+    if Larm_theta != []:
+        for theta in Larm_theta:
+            theta = int(theta) * (np.pi/180)
+            Larm_thetarad.append(theta)
+    if Rarm_theta != []:
+        for theta in Rarm_theta:
+            theta = int(theta) * (np.pi/180)
+            Rarm_thetarad.append(theta)
 
-    # Declare joint handles for each joint in the arms
-    #result, joint_one_handleL = vrep.simxGetObjectHandle(clientID, 'Baxter_leftArm_joint1', vrep.simx_opmode_blocking)
-    #result2, joint_one_handleR = vrep.simxGetObjectHandle(clientID, 'Baxter_rightArm_joint1', vrep.simx_opmode_blocking)
-    #result3, joint_two_handleL = vrep.simxGetObjectHandle(clientID, 'Baxter_leftArm_joint2', vrep.simx_opmode_blocking)
-    #result4, joint_two_handleR = vrep.simxGetObjectHandle(clientID, 'Baxter_rightArm_joint2', vrep.simx_opmode_blocking)
-    #result5, joint_three_handleL = vrep.simxGetObjectHandle(clientID, 'Baxter_leftArm_joint3',
-                                                            #vrep.simx_opmode_blocking)
-    #result6, joint_three_handleR = vrep.simxGetObjectHandle(clientID, 'Baxter_rightArm_joint3',
-                                                            #vrep.simx_opmode_blocking)
-    #result7, joint_four_handleL = vrep.simxGetObjectHandle(clientID, 'Baxter_leftArm_joint4', vrep.simx_opmode_blocking)
-    #result8, joint_four_handleR = vrep.simxGetObjectHandle(clientID, 'Baxter_rightArm_joint4',
-                                                           #vrep.simx_opmode_blocking)
-    #result9, joint_five_handleL = vrep.simxGetObjectHandle(clientID, 'Baxter_leftArm_joint5', vrep.simx_opmode_blocking)
-    #result10, joint_five_handleR = vrep.simxGetObjectHandle(clientID, 'Baxter_rightArm_joint5',
-                                                            #vrep.simx_opmode_blocking)
-    #result11, joint_six_handleL = vrep.simxGetObjectHandle(clientID, 'Baxter_leftArm_joint6', vrep.simx_opmode_blocking)
-    #result12, joint_six_handleR = vrep.simxGetObjectHandle(clientID, 'Baxter_rightArm_joint6',
-                                                           #vrep.simx_opmode_blocking)
-    #result13, joint_seven_handleL = vrep.simxGetObjectHandle(clientID, 'Baxter_leftArm_joint7',
-                                                             #vrep.simx_opmode_blocking)
-    #result14, joint_seven_handleR = vrep.simxGetObjectHandle(clientID, 'Baxter_rightArm_joint7',
-                                                             #vrep.simx_opmode_blocking)
+    if body_theta != []:
+        for theta in body_theta:
+            theta = int(theta) * (np.pi/180)
+            body_thetarad.append(theta)
 
-    # every other joint
-    #result_vert, joint_vert = vrep.simxGetObjectHandle(clientID, 'Baxter_verticalJoint', vrep.simx_opmode_blocking)
-    #result_base, joint_base = vrep.simxGetObjectHandle(clientID, 'Baxter_rotationJoint', vrep.simx_opmode_blocking)
-    #result_monitor, joint_monitor = vrep.simxGetObjectHandle(clientID, 'Baxter_monitorJoint', vrep.simx_opmode_blocking)
+    dummy_handler = []
+    dummyres = []
 
-    # arm joint library
-    #result_list = [result, result2, result3, result4, result5, result6, result7, result8, result9, result10, result11,
-                   #result12, result13, result14]
-    #joint_handles = [joint_one_handleL, joint_one_handleR, joint_two_handleL, joint_two_handleR, joint_three_handleL,
-                     #joint_three_handleR, joint_four_handleL, joint_four_handleR, joint_five_handleL,
-                     #joint_five_handleR, joint_six_handleL, joint_six_handleR, joint_seven_handleL, joint_seven_handleR]
+    #declare handler parent
+    res, base_handler = vrep.simxGetObjectHandle(clientID, 'Baxter_base_visible', vrep.simx_opmode_blocking)
+    res, Larm_handler = vrep.simxGetObjectHandle(clientID, 'Baxter_leftArm_tip', vrep.simx_opmode_blocking)
+    res, Rarm_handler = vrep.simxGetObjectHandle(clientID, 'BaxterGripper', vrep.simx_opmode_blocking)
+    res, monitor_handler = vrep.simxGetObjectHandle(clientID, 'Baxter_monitor', vrep.simx_opmode_blocking)
 
-    # In the future, a dictionary will be used to call each individual joint, with the keys being each joint, and the values being the result/joint handlers
 
-def deriveFK():
-    return
+    #Display Coordinate frame via dummy
+    res, dummy_monitor = vrep.simxCreateDummy(clientID, 0.1,[],vrep.simx_opmode_blocking)
+    dummyres.append(res)
+    dummy_handler.append(dummy_monitor)
+    res2, dummy_Rarm = vrep.simxCreateDummy(clientID, 0.1,[],vrep.simx_opmode_blocking)
+    dummyres.append(res2)
+    dummy_handler.append(dummy_Rarm)
+    res3, dummy_Larm = vrep.simxCreateDummy(clientID, 0.1,[],vrep.simx_opmode_blocking)
+    dummyres.append(res3)
+    dummy_handler.append(dummy_Larm)
+    res4, dummy_base = vrep.simxCreateDummy(clientID, 0.25,[],vrep.simx_opmode_blocking)
+    #Will clean up later (place into loops)
 
-def runsimulation(clientID, joint_library):
+    positions = []
+    orientations = []
+
+    result, posB = vrep.simxGetObjectPosition(clientID, base_handler, base_handler, vrep.simx_opmode_blocking)
+    result, orientationB = vrep.simxGetObjectOrientation(clientID, base_handler, base_handler, vrep.simx_opmode_blocking)
+
+    result, posL = vrep.simxGetObjectPosition(clientID, Larm_handler, base_handler, vrep.simx_opmode_blocking)
+    result, orientationL = vrep.simxGetObjectOrientation(clientID, Larm_handler, base_handler, vrep.simx_opmode_blocking)
+    positions.append(posL)
+    orientations.append(orientationL)
+
+    result, posR = vrep.simxGetObjectPosition(clientID, Rarm_handler, base_handler, vrep.simx_opmode_blocking)
+    result, orientationR = vrep.simxGetObjectOrientation(clientID, Rarm_handler, base_handler, vrep.simx_opmode_blocking)
+    positions.append(posR)
+    orientations.append(orientationR)
+
+    result, posM = vrep.simxGetObjectPosition(clientID, monitor_handler, base_handler, vrep.simx_opmode_blocking)
+    result, orientationM = vrep.simxGetObjectOrientation(clientID, monitor_handler, base_handler, vrep.simx_opmode_blocking)
+    positions.append(posM)
+    orientations.append(orientationM)
+
+    #Set Original Tool Frame positions
+    vrep.simxSetObjectPosition(clientID, dummy_base, base_handler, posB,vrep.simx_opmode_blocking)
+    vrep.simxSetObjectOrientation(clientID, dummy_base, base_handler, orientationB, vrep.simx_opmode_blocking)
+
+    vrep.simxSetObjectPosition(clientID, dummy_Larm, base_handler, posL,vrep.simx_opmode_blocking)
+    vrep.simxSetObjectPosition(clientID, dummy_Rarm, base_handler, posR, vrep.simx_opmode_blocking)
+    vrep.simxSetObjectPosition(clientID, dummy_monitor, base_handler, posM, vrep.simx_opmode_blocking)
+
+    vrep.simxSetObjectOrientation(clientID, dummy_Larm, base_handler, orientationL, vrep.simx_opmode_blocking)
+    vrep.simxSetObjectOrientation(clientID, dummy_Rarm, base_handler, orientationR, vrep.simx_opmode_blocking)
+    vrep.simxSetObjectOrientation(clientID, dummy_monitor, base_handler, orientationM, vrep.simx_opmode_blocking)
+
+    #T_matrixlist = obtain_homogeneousTmatrix(clientID, positions, orientations)
+
+    for result in dummyres:
+        if result != vrep.simx_return_ok:
+            raise Exception('Could not get Dummy')
+
+    return dummy_handler, Larm_thetarad, Rarm_thetarad, body_thetarad
+
+def obtain_homogeneousTmatrix(clientID, positions, orientations):
+    #declare new fram positions
+
+    T_matrix_list = []
+    rot_rows = [0] * 4
+    for i in range(0, 3):
+        T_matrix = []
+        for k in range(0, 4):
+            T_matrix.append(rot_rows)
+        T_matrix = populateTmatrix(T_matrix, positions, orientations)
+
+    return T_matrix_list
+
+def populateTmatrix(empty_Tmatrix, positions, orientations):
+
+    for position in positions:
+        print '22222', position
+        for coordinate in position:
+            for row, i in zip(empty_Tmatrix, [0, 1, 2, 3]):
+                row[3] = position[i]
+
+    empty_Tmatrix.append([0, 0, 0, 1])
+    print empty_Tmatrix
+    return empty_Tmatrix
+
+def runsimulation(clientID, joint_library, Larm_joints, Rarm_joints, body_joints, Larm_theta, Rarm_theta, body_theta, joint_Rarm, joint_Larm, dummy_handler, joint_bodynames):
     # Start simulation
     vrep.simxStartSimulation(clientID, vrep.simx_opmode_oneshot)
 
@@ -113,8 +173,27 @@ def runsimulation(clientID, joint_library):
 
         if result != vrep.simx_return_ok:
             raise Exception('could not get first joint variable')
-        print 'current value of ' + joint + ': theta = {:f}'.format(theta)
+        #print 'current value of ' + joint + ': theta = {:f}'.format(theta)
 
+    if body_theta != []:
+        for joint, theta in zip(joint_bodynames, body_theta):
+            joint_obj = body_joints[joint]['Joint Handler']
+            vrep.simxSetJointTargetPosition(clientID, joint_obj, theta, vrep.simx_opmode_oneshot)
+            time.sleep(2)
+
+    if Rarm_theta != []:
+        for joint, theta in zip(joint_Rarm, Rarm_theta):
+            joint_obj = Rarm_joints[joint]['Joint Handler']
+            vrep.simxSetJointTargetPosition(clientID, joint_obj, theta, vrep.simx_opmode_oneshot)
+            time.sleep(2)
+
+    if Larm_theta != []:
+        for joint, theta in zip(joint_Larm, Larm_theta):
+            joint_obj = Larm_joints[joint]['Joint Handler']
+            vrep.simxSetJointTargetPosition(clientID, joint_obj, theta, vrep.simx_opmode_oneshot)
+            time.sleep(2)
+
+    time.sleep(5)
     # Stop simulation
     vrep.simxStopSimulation(clientID, vrep.simx_opmode_oneshot)
 
@@ -125,13 +204,18 @@ def runsimulation(clientID, joint_library):
     vrep.simxFinish(clientID)
 
 def main():
-    theta = []
+    Larm_theta = []
+    Rarm_theta = []
     body_theta = []
+    body_flag = False
+    Larm_flag = False
+    Rarm_flag = False
 
     print "This is a simulation for the Baxter robot"
     body_response = raw_input("Would you like to move the body? (Y or N)")
 
     if body_response == 'Y':
+        body_flag = True
         print "Input Theta in degrees"
         theta_vert = raw_input("Vert. Joint = ")
         body_theta.append(float(theta_vert))
@@ -140,31 +224,50 @@ def main():
         monitor_theta = raw_input("Monitor Theta = ")
         body_theta.append(monitor_theta)
 
-    arm_response = raw_input("Would you like to move the arms? (Y or N)")
+    arm_response1 = raw_input("Would you like to move the left arm? (Y or N)")
 
-    if arm_response == 'Y':
+    if arm_response1 == 'Y':
+        Larm_flag = True
         print "Input Theta in degrees"
         theta1 = raw_input("Theta1 = ")
-        theta.append(float(theta1))
+        Larm_theta.append(float(theta1))
         theta2 = raw_input("Theta2 = ")
-        theta.append(float(theta2))
+        Larm_theta.append(float(theta2))
         theta3 = raw_input("Theta3 = ")
-        theta.append(float(theta3))
+        Larm_theta.append(float(theta3))
         theta4 = raw_input("Theta4 = ")
-        theta.append(float(theta4))
+        Larm_theta.append(float(theta4))
         theta5 = raw_input("Theta5 = ")
-        theta.append(float(theta5))
+        Larm_theta.append(float(theta5))
         theta6 = raw_input("Theta6 = ")
-        theta.append(float(theta6))
+        Larm_theta.append(float(theta6))
         theta7 = raw_input("Theta7 = ")
-        theta.append(float(theta7))
+        Larm_theta.append(float(theta7))
 
-    if body_response or arm_response != 'N':
-        print '111111'
+    arm_response2 = raw_input("Would you like to move the right arm? (Y or N)")
+    if arm_response2 == 'Y':
+        Rarm_flag = True
+        print "Input Theta in degrees"
+        theta1 = raw_input("Theta1 = ")
+        Rarm_theta.append(float(theta1))
+        theta2 = raw_input("Theta2 = ")
+        Rarm_theta.append(float(theta2))
+        theta3 = raw_input("Theta3 = ")
+        Rarm_theta.append(float(theta3))
+        theta4 = raw_input("Theta4 = ")
+        Rarm_theta.append(float(theta4))
+        theta5 = raw_input("Theta5 = ")
+        Rarm_theta.append(float(theta5))
+        theta6 = raw_input("Theta6 = ")
+        Rarm_theta.append(float(theta6))
+        theta7 = raw_input("Theta7 = ")
+        Rarm_theta.append(float(theta7))
+
+    if body_flag or Rarm_flag or Larm_flag != False:
         clientID = initialize_sim()
-        joint_library = declarejointvar(clientID)
-        deriveFK()
-        runsimulation(clientID, joint_library)
+        joint_library, Larm_joints, Rarm_joints, body_joints, joint_bodynames, joint_Rarm, joint_Larm = declarejointvar(clientID)
+        dummy_handler, Larm_thetarad, Rarm_thetarad, body_thetarad = deriveFK(clientID, Larm_theta, Rarm_theta, body_theta, Larm_joints, Rarm_joints, body_joints)
+        runsimulation(clientID, joint_library, Larm_joints, Rarm_joints, body_joints, Larm_thetarad, Rarm_thetarad, body_thetarad, joint_Rarm, joint_Larm, dummy_handler, joint_bodynames)
 
 
 if __name__ == "__main__": main()
