@@ -27,3 +27,14 @@ Future Plans: Migrate to GitHub, implement full joint dictionary so that things 
 Checkpoint 2 (3/12)
 
 This week involved implementing Forward Kinematics to the Baxter Robot
+
+1. Consolidate all joint handlers into one joint library
+2. Separate the joint library into three separate joint dictionaries for each set of joints
+3. Draw up generalized schematic of Baxter robot using unit distances for each robot (assumed each arm was on the same plane)
+4. Wrote down initial T_01(0) homogeneous transformation matrices for each set of joints
+5. Calculated initial spatial screw axes (farthest we shall go on paper)
+6. Since the transformation matrix can be described as the sequential exponentials and the homogeneous transformation matrix, only one set of transformation matrices was written down (base to monitor).
+7. Organized code so that each part of the things setting up and running the simulation were in separate functions.
+8. Wrote down user input commands that would take in the theta positions for each robot joint depending on which joints the user picked.
+9. Added basic dummy to represent tool frame that will be target.
+10. 
