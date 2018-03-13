@@ -38,4 +38,6 @@ This week involved implementing Forward Kinematics to the Baxter Robot
 8. Wrote down user input commands that would take in the theta positions for each robot joint depending on which joints the user picked.
 9. Added basic dummy to represent tool frame that will be target.
 10. Placed dummy frames in tool_frame positions, as well as placed base frame
-11.
+(Stopped here for deadline, will update later in the week for full forward kinematics module)
+
+
