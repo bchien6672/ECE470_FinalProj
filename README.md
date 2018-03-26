@@ -40,4 +40,11 @@ This week involved implementing Forward Kinematics to the Baxter Robot
 10. Placed dummy frames in tool_frame positions, as well as placed base frame
 (Stopped here for deadline, will update later in the week for full forward kinematics module)
 
+Note: I will not be moviong forward in implementing a full forward kinematics module, but a lot of the concepts that are used to derive forward kinematics are included in the following derivations for inverse kinematics, so a lot of the process is to interpret the various axis and dimensioning within the simulator and putting that into valid matrices for kinematics.
 
+Checkpoint 3 (3/26)
+
+To make up for lack of forward kinematics derivations
+1. Implemented into new Checkpoint 3 python code a library of matrix operations that will be useful 
+2. Create a spreadsheet for joint x,y,z distances
+3.
