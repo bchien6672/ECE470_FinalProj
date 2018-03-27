@@ -60,12 +60,47 @@ def rotMatrix2Euler(R_matrix): #find general euler angles from rot matrix
     y = math.asin(R_matrix[0, 2])
     z = math.atan2(-R_matrix[0, 1], R_matrix[0,0])
     angles = np.array([x, y, z])
-
     return angles
 
 """ Kinematics Equations"""
+def get_initialpose(frame_selection):
+    if frame_selection == 1: #monitor frame
+        t_original = np.array([[0, 0, 1, 0.4113],
+                              [1, 0, 0, 0.4751],
+                              [0, 1, 0, 1.6004],
+                              [0, 0, 0, 1]])
+    elif frame_selection == 2: #left arm frame
+        t_original = np.array([[1, 0, 0, 1.0363],
+                              [0, 0, 1, 1.456],
+                              [0, 1, 0, 1.237],
+                              [0, 0, 0, 1]])
+    elif frame_selection == 3: #right arm frame
+        t_original = np.array([[1, 0, 0, 1.0363],
+                              [0, 0, 1, -0.5065],
+                              [0, 1, 0, 1.237],
+                              [0, 0, 0, 1]])
+    return t_original
 
-
+def get_screwmatrix(frame_selection):
+    if frame_selection == 1: #monitorframe
+        s_matrix = np.zeros(6, 3)
+        s_matrix = np.array([[0, 0, 1, 0.4113],
+                              [1, 0, 0, 0.4751],
+                              [0, 1, 0, 1.6004],
+                              [0, 0, 0, 1]])
+    elif frame_selection == 2: #left arm frame
+        s_matrix = np.zeros(6, 7)
+        s_matrix = np.array([[1, 0, 0, 1.0363],
+                              [0, 0, 1, 1.456],
+                              [0, 1, 0, 1.237],
+                              [0, 0, 0, 1]])
+    elif frame_selection == 3: #right arm frame
+        s_matrix = np.zeros(6, 7)
+        s_matrix = np.array([[1, 0, 0, 1.0363],
+                              [0, 0, 1, -0.5065],
+                              [0, 1, 0, 1.237],
+                              [0, 0, 0, 1]])
+    return s_matrix
 
 """ V-REP Functions """
 def initialize_sim():
@@ -114,6 +149,15 @@ def declarejointvar(clientID):
 
     return joint_library, Larm_joints, Rarm_joints, body_joints, joint_bodynames, joint_Rarm, joint_Larm
 
+def movebody():
+    return
+
+def move_rightarm():
+    return
+
+def move_leftarm():
+    return
+
 def main():
     Larm_theta = []
     Rarm_theta = []
@@ -121,9 +165,47 @@ def main():
     body_flag = False
     Larm_flag = False
     Rarm_flag = False
+    frame_selection = 0
 
-    print "This is an inverse kinematics simulation for the Baxter robot"
-    body_response = raw_input("Input the ")
+    print "This is an inverse kinematics simulation for the Baxter robot. As of now, only one frame can be calculated."
+    body_response = raw_input("Would you like to move the body, left arm, or right arm:  ")
 
+    if str(body_response) == "body": #3 joints
+        body_flag = True
+        frame_selection = 1
+        print "The body will be moved"
+    elif str(body_response) == "left arm": #7 joints
+        Larm_flag = True
+        frame_selection = 2
+        print "The left arm will be moved"
+    elif str(body_response) == "right arm": #7 joints
+        Rarm_flag = True
+        frame_selection = 3
+        print "The right arm will be moved"
+    else:
+        print "That is not a valid frame to be moved"
+
+    if body_flag and Larm_flag and Rarm_flag == False:
+        print "Program end"
+        quit()
+
+    #run inverse/forward kinematics calculations
+    M = get_initialpose(frame_selection)
+    S = get_screwmatrix(frame_selection)
+
+
+    clientID = initialize_sim()
+
+    #declare joint parameters for interacting with V-REP
+    joint_library, Larm_joints, Rarm_joints, body_joints, joint_bodynames, joint_Rarm, joint_Larm = declarejointvar(clientID)
+
+    #stop simulation
+    vrep.simxStopSimulation(clientID, vrep.simx_opmode_oneshot)
+
+    # Before closing the connection to V-REP, make sure that the last command sent out had time to arrive. You can guarantee this with (for example):
+    vrep.simxGetPingTime(clientID)
+
+    # Close the connection to V-REP
+    vrep.simxFinish(clientID)
 
 if __name__ == "__main__": main()
