@@ -44,7 +44,9 @@ Note: I will not be moviong forward in implementing a full forward kinematics mo
 
 Checkpoint 3 (3/26)
 
-To make up for lack of forward kinematics derivations
+To make up for lack of forward kinematics derivations, the main functions that could be used are in the following Checkpoint, as they are needed for inverse kinematics implementations...
 1. Implemented into new Checkpoint 3 python code a library of matrix operations that will be useful 
 2. Create a spreadsheet for joint x,y,z distances
-3.
+3. Rewrite user prompt info for what frames the user wants to move
+4. Added initial screw calculations derived from joint spreadsheet
+5. Created desired transformation pose algorithm
