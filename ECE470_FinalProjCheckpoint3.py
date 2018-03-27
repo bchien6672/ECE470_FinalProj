@@ -6,7 +6,7 @@ import scipy as sp
 
 """ Matrix Calculations """ #Syntax is similar to public class repository
 def create_skewsym(input_matrix): #input_matrix must be 3 elements
-    ss_matrix = np.zeros(3, 3)
+    ss_matrix = np.zeros((3, 3))
     ss_matrix[0][1] = -1 * input_matrix[2]
     ss_matrix[0][2] = input_matrix[1]
     ss_matrix[1][0] = input_matrix[2]
@@ -21,7 +21,7 @@ def get_skewval(matrix):
     return ss_val
 
 def create_bracket(v_screw): #input should be 6 element list
-    bracket_matrix = np.zeros(4,4)
+    bracket_matrix = np.zeros((4,4))
     bracket_matrix[0:3, 0:3] = create_skewsym(v_screw[0:3])
     bracket_matrix[0:3, 3] = np.transpose(v_screw[3:])
 
@@ -49,7 +49,7 @@ def create_rottransmatrix(t_matrix): #Input is a 4x4 matrix
     return rot_matrix, trans_matrix
 
 def val2screw(val_list):
-    rot_axis = [i for i in val_list[0:2]]
+    rot_axis = [i for i in val_list[0:3]]
     screw_matrix = np.zeros(6)
     screw_matrix[0:3] = np.array([val_list[0], val_list[1], val_list[2]])
     screw_matrix[3:] = -1 * np.dot(create_skewsym(rot_axis), np.array([val_list[3], val_list[4], val_list[5]]))
@@ -76,31 +76,68 @@ def get_initialpose(frame_selection):
                               [0, 0, 0, 1]])
     elif frame_selection == 3: #right arm frame
         t_original = np.array([[1, 0, 0, 1.0363],
-                              [0, 0, 1, -0.5065],
+                              [0, 0, -1, -0.5065],
                               [0, 1, 0, 1.237],
                               [0, 0, 0, 1]])
     return t_original
 
-def get_screwmatrix(frame_selection):
+def get_screwmatrix(frame_selection): #in the future I will be implementing this into a screw matrix library, again for simplicity...
     if frame_selection == 1: #monitorframe
-        s_matrix = np.zeros(6, 3)
-        s_matrix = np.array([[0, 0, 1, 0.4113],
-                              [1, 0, 0, 0.4751],
-                              [0, 1, 0, 1.6004],
-                              [0, 0, 0, 1]])
+        s_matrix = np.zeros((6, 3))
+        prismatic_s = np.zeros(6)
+        prismatic_s[0:3] = np.array([0,0,0])
+        prismatic_s[3:] = np.array([0,0,1])
+        s_matrix[:,0] = prismatic_s
+        s_vals = [[0, 0, 1, 0.25, 0.475, 0.8777],[0, 0, 1, 0.3101, 0.4751, 1.6104]]
+        for vals in s_vals:
+            ind = s_vals.index(vals) + 1
+            s_matrix[:,ind] = val2screw(vals)
     elif frame_selection == 2: #left arm frame
-        s_matrix = np.zeros(6, 7)
-        s_matrix = np.array([[1, 0, 0, 1.0363],
-                              [0, 0, 1, 1.456],
-                              [0, 1, 0, 1.237],
-                              [0, 0, 0, 1]])
+        s_matrix = np.zeros((6, 7))
+        s_vals = [[0, 0, 1, 0.3138, 0.7341, 1.054], [1, 0, 0, 0.3626, 0.7828, 1.3244], [0, 1, 0, 0.4347, 0.855, 1.3244], [1, 0, 0, 0.6203, 1.0405, 1.2554], [0, 1, 0, 0.6935, 1.1138, 1.2554], [1, 0, 0, 0.8849, 1.3052, 1.2454], [0, 1, 0, 0.9669, 1.3872, 1.2454]]
+        for vals in s_vals:
+            ind = s_vals.index(vals)
+            s_matrix[:,ind] = val2screw(vals)
     elif frame_selection == 3: #right arm frame
-        s_matrix = np.zeros(6, 7)
-        s_matrix = np.array([[1, 0, 0, 1.0363],
-                              [0, 0, 1, -0.5065],
-                              [0, 1, 0, 1.237],
-                              [0, 0, 0, 1]])
+        s_matrix = np.zeros((6, 7))
+        s_vals = [[0, 0, 1, 0.3142, 0.216, 1.054], [-1, 0, 0, 0.3629, 0.1672, 1.3244], [0, -1, 0, 0.4351, 0.0951, 1.3244], [-1, 0, 0, 0.6206, -0.0904, 1.2554], [0, -1, 0, 0.6939, -0.1637, 1.2554], [-1, 0, 0, 0.8853, -0.3551, 1.2454], [0, -1, 0, 0.9673, -0.4371, 1.2454]]
+        for vals in s_vals:
+            ind = s_vals.index(vals)
+            s_matrix[:, ind] = val2screw(vals)
     return s_matrix
+
+def get_desiredposematrix(param_list):
+    t_matrix = np.zeros((4,4))
+    x = param_list[0]
+    y = param_list[1]
+    z = param_list[2]
+    alpha = param_list[3]
+    beta = param_list[4]
+    gamma = param_list[5]
+
+    t_matrix[0, 3] = x
+    t_matrix[1, 3] = y
+    t_matrix[2, 3] = z
+    t_matrix[3, 3] = 1
+
+    #Use generalized rotation matrix formula
+    R_x = np.array([[1,               0,                    0],
+                    [0, math.cos(alpha), -1 * math.sin(alpha)],
+                    [0, math.sin(alpha), math.cos(alpha)]])
+
+    R_y = np.array([[math.cos(beta), 0, math.sin(beta)],
+                    [0,              1,              0],
+                    [-1 * math.sin(beta), 0, math.cos(beta)]])
+
+    R_z = np.array([[math.cos(gamma), -1 * math.sin(gamma), 0],
+                    [math.sin(gamma),      math.cos(gamma),              0],
+                    [0,                                  0,              1]])
+
+    R_matrix = np.linalg.multi_dot([R_x, R_y, R_z])
+
+    t_matrix[0:3,0:3] = R_matrix
+
+    return t_matrix
 
 """ V-REP Functions """
 def initialize_sim():
@@ -142,7 +179,6 @@ def declarejointvar(clientID):
             Larm_joints[joint] = {}
             Larm_joints[joint]['Result'] = result
             Larm_joints[joint]['Joint Handler'] = joint_handle
-        #compose Master joint dictionary.....
         joint_library[joint] = {}
         joint_library[joint]['Result'] = result
         joint_library[joint]['Joint Handler'] = joint_handle
@@ -193,7 +229,25 @@ def main():
     M = get_initialpose(frame_selection)
     S = get_screwmatrix(frame_selection)
 
+    final_params = []
+    print "Please input the desired position and orientation of your frame"
+    x = float(raw_input("X-position: "))
+    final_params.append(x)
+    y = float(raw_input("Y-position: "))
+    final_params.append(y)
+    z = float(raw_input("Z-position: "))
+    final_params.append(z)
+    alpha = float(raw_input("X-orientation (deg): "))
+    alpha = alpha * (math.pi/180) #convert to radians
+    final_params.append(alpha)
+    beta = float(raw_input("Y-orientation (deg): "))
+    beta = beta * (math.pi/180)
+    final_params.append(beta)
+    gamma = float(raw_input("Z-orientation (deg): "))
+    gamma = gamma * (math.pi/180)
+    final_params.append(gamma)
 
+    desired_T = get_desiredposematrix(final_params)
     clientID = initialize_sim()
 
     #declare joint parameters for interacting with V-REP
