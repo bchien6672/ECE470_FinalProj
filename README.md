@@ -50,3 +50,11 @@ To make up for lack of forward kinematics derivations, the main functions that c
 3. Rewrite user prompt info for what frames the user wants to move
 4. Added initial screw calculations derived from joint spreadsheet
 5. Created desired transformation pose algorithm
+6. Implemented FK module for test transformation matrix
+7. Implemented full IK module
+8. Implemented joint movement logic that would enable it to determine where it will go while looking for the goal pose
+9. Added code for showing where the goal pose is, as well as having it change color when the arm reaches the correct pose
+10. bugfixing....
+
+Current bugs:
+I would like to check over the screw matrix and initial transformation matrix derivations, as the relative logic for the IK and FK functions are relatively correct.
