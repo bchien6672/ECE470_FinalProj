@@ -58,3 +58,7 @@ To make up for lack of forward kinematics derivations, the main functions that c
 
 Current bugs:
 I would like to check over the screw matrix and initial transformation matrix derivations, as the relative logic for the IK and FK functions are relatively correct.
+
+Checkpoint 4 (4/2)
+1. Looked into deciding what type of collision detector to use. (Currently going to work directly with V-REP)
+2. Ported existing code into the new module.
