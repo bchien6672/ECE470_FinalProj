@@ -64,6 +64,7 @@ Checkpoint 4 (4/2)
 2. Ported existing code into the new module.
 3. Decided on algorithm to understand how robot should handle collision (decide on having the joint go back to original position and move on)
 4. Compiling set of joint thetas for the robot to perform, currently have 4 sets of thetas that will yield at least 30 configurations, with additional configurations that will occur when the robot has been in collision)
+5. Uploaded Robot Scene
 
 Current Issues:
 The simulation may sometimes be wonky with the robot returning to the original position, as it will get stuck with the table.
