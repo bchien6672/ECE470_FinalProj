@@ -296,23 +296,60 @@ def declarejointvar(clientID):
 
     return joint_library, Larm_joints, Rarm_joints, body_joints, joint_bodynames, joint_Rarm, joint_Larm
 
+""" Collision Detection Package"""
+
+def getCollisionlib(clientID):
+     collision_list = ['CollisionL', 'CollisionR']
+     collision_lib = []
+
+     for item in collision_list:
+        collision = vrep.simxGetCollisionHandle(clientID, item, vrep.simx_opmode_blocking)
+        collision_lib.append(collision)
+
+     return collision_lib
+
+def perform_collisiondetect():
+
+
+    return
+
 def movebody(clientID, joint_dict, joint_name, theta):
     for joint, theta_val in zip(joint_name, theta):
         joint_obj = joint_dict[joint]['Joint Handler']
         vrep.simxSetJointTargetPosition(clientID, joint_obj, theta_val, vrep.simx_opmode_oneshot)
         time.sleep(0.5)
+
     return
 
-def move_rightarm(clientID, joint_dict, joint_name, theta):
-    for joint, theta_val in zip(joint_name, theta):
-        joint_obj = joint_dict[joint]['Joint Handler']
-        vrep.simxSetJointTargetPosition(clientID, joint_obj, theta_val, vrep.simx_opmode_oneshot)
-        time.sleep(0.5)
-    return
+def main():
+    Larm_theta = []
+    Rarm_theta = []
+    body_theta = []
+    thetas = []
+    body_flag = False
+    Larm_flag = False
+    Rarm_flag = False
 
-def move_leftarm(clientID, joint_dict, joint_name, theta):
-    for joint, theta_val in zip(joint_name, theta):
-        joint_obj = joint_dict[joint]['Joint Handler']
-        vrep.simxSetJointTargetPosition(clientID, joint_obj, theta_val, vrep.simx_opmode_oneshot)
-        time.sleep(0.5)
-    return
+    clientID = initialize_sim()
+    vrep.simxStartSimulation(clientID, vrep.simx_opmode_oneshot)
+    joint_library, Larm_joints, Rarm_joints, body_joints, joint_bodynames, joint_Rarm, joint_Larm = declarejointvar(clientID)
+    collision_library = getCollisionlib(clientID)
+
+    if Larm_flag == True:
+        movebody(clientID, Larm_joints, joint_Larm, Larm_theta)
+        perform_collisiondetect(clientID, Larm_joints, joint_Larm)
+    if Rarm_flag == True:
+        movebody(clientID, Rarm_joints, joint_Rarm, Rarm_theta)
+        perform_collisiondetect(clientID, Rarm_joints, joint_Rarm)
+
+    # stop simulation
+    vrep.simxStopSimulation(clientID, vrep.simx_opmode_oneshot)
+
+    # Before closing the connection to V-REP, make sure that the last command sent out had time to arrive. You can guarantee this with (for example):
+    vrep.simxGetPingTime(clientID)
+
+    # Close the connection to V-REP
+    vrep.simxFinish(clientID)
+
+
+if __name__ == "__main__": main()
