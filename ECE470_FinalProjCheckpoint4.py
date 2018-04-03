@@ -299,49 +299,62 @@ def declarejointvar(clientID):
 """ Collision Detection Package"""
 
 def getCollisionlib(clientID):
-     collision_list = ['CollisionL', 'CollisionR']
+     collision_listL = ['C1L', 'C2L', 'C3L', 'C4L', 'C5L', 'C6L', 'C7L']
+     collision_listR = ['C1R', 'C2R', 'C3R', 'C4R', 'C5R', 'C6R', 'C7R']
+     collision_list = ['CL', 'CR']
+     collisionL_handle = []
+     collisionR_handle = []
      collision_lib = []
 
      for item in collision_list:
-        collision = vrep.simxGetCollisionHandle(clientID, item, vrep.simx_opmode_blocking)
-        collision_lib.append(collision)
+         res, collision = vrep.simxGetCollisionHandle(clientID, item, vrep.simx_opmode_blocking)
+         collision_lib.append(collision)
 
+     #for item in collision_listL:
+        #res, collision = vrep.simxGetCollisionHandle(clientID, item, vrep.simx_opmode_blocking)
+        #collisionL_handle.append(collision)
+     #collision_lib.append(collisionL_handle)
+
+     #for item in collision_listR:
+        # res, collision = vrep.simxGetCollisionHandle(clientID, item, vrep.simx_opmode_blocking)
+         #collisionR_handle.append(collision)
+     #collision_lib.append(collisionR_handle)
      return collision_lib
 
-def perform_collisiondetect():
+def perform_collisiondetect(clientID, collision):
+    res, in_collision = vrep.simxReadCollision(clientID, collision, vrep.simx_opmode_streaming)
+    print "Collision Status: " + str(in_collision)
+    return in_collision
 
-
-    return
-
-def movebody(clientID, joint_dict, joint_name, theta):
+def movebody(clientID, joint_dict, joint_name, theta, collision):
     for joint, theta_val in zip(joint_name, theta):
         joint_obj = joint_dict[joint]['Joint Handler']
         vrep.simxSetJointTargetPosition(clientID, joint_obj, theta_val, vrep.simx_opmode_oneshot)
-        time.sleep(0.5)
-
+        time.sleep(1)
+        collision_state = perform_collisiondetect(clientID, collision)
+        if collision_state == True:
+            vrep.simxSetJointTargetPosition(clientID, joint_obj, 0, vrep.simx_opmode_oneshot)
+            time.sleep(0.5)
     return
 
 def main():
-    Larm_theta = []
-    Rarm_theta = []
-    body_theta = []
-    thetas = []
-    body_flag = False
-    Larm_flag = False
-    Rarm_flag = False
+    thetas = [[4, 10, 0, 2, 45, 6, 9],[-3, 12, 3, 5, 7, 9, 1],[-2, 3, 5, 7, 8, 10],[-1, 2, 4, 6, 1, 2, -56],[-0.25, 1, 2, 3, 4, 15, 25]]
+
+    print "This is a collision detection simulation for the Baxter robot"
 
     clientID = initialize_sim()
     vrep.simxStartSimulation(clientID, vrep.simx_opmode_oneshot)
     joint_library, Larm_joints, Rarm_joints, body_joints, joint_bodynames, joint_Rarm, joint_Larm = declarejointvar(clientID)
     collision_library = getCollisionlib(clientID)
 
-    if Larm_flag == True:
-        movebody(clientID, Larm_joints, joint_Larm, Larm_theta)
-        perform_collisiondetect(clientID, Larm_joints, joint_Larm)
-    if Rarm_flag == True:
-        movebody(clientID, Rarm_joints, joint_Rarm, Rarm_theta)
-        perform_collisiondetect(clientID, Rarm_joints, joint_Rarm)
+    for theta_set in thetas:
+        movebody(clientID, Larm_joints, joint_Larm, theta_set, collision_library[0])
 
+        movebody(clientID, Rarm_joints, joint_Rarm, theta_set, collision_library[1])
+
+        movebody(clientID, Larm_joints, joint_Larm, [0, 0, 0, 0, 0, 0], collision_library[0])
+
+        movebody(clientID, Rarm_joints, joint_Rarm, [0, 0, 0, 0, 0, 0], collision_library[1])
     # stop simulation
     vrep.simxStopSimulation(clientID, vrep.simx_opmode_oneshot)
 
