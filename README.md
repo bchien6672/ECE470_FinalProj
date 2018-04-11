@@ -69,3 +69,6 @@ Checkpoint 4 (4/2)
 Current Issues:
 The simulation may sometimes be wonky with the robot returning to the original position, as it will get stuck with the table.
 
+CheckPoint 5 (4/11)
+1. Uploaded framework that will be used for path planning
+2. Added in valid theta checking function
