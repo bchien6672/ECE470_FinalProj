@@ -261,6 +261,19 @@ def initialize_sim():
 
     return clientID
 
+def checkjointThetas(theta_list):
+    joint_upperbound = [97.494, 60, 174.987, 150, 175.25, 120, 175.25]
+    joint_lowerbound = [-97.494, -123, -174.987, -2.864, -175.25, -90, -175.25]
+
+    for i in range(0, len(theta_list) - 1):
+        if joint_upperbound[i] > theta_list[i] > joint_lowerbound[i]:
+            continue
+        else:
+            print "Theta " + theta_list[i] + " does not fit within the bounds: " + joint_lowerbound[i] + ", " + joint_upperbound[i]
+
+            theta_list[i] = 0
+    return theta_list
+
 def declarejointvar(clientID):
     joint_library = {}
     body_joints = {}
@@ -338,23 +351,74 @@ def movebody(clientID, joint_dict, joint_name, theta, collision):
     return
 
 def main():
-    thetas = [[4, 10, 0, 2, 45, 6, 9],[-3, 12, 3, 5, 7, 9, 1],[-2, 3, 5, 7, 8, 10],[-1, 2, 4, 6, 1, 2, -56],[-0.25, 1, 2, 3, 4, 15, 25]]
+    Larm_theta = []
+    Rarm_theta = []
+    Larm_flag = False
+    Rarm_flag = False
+    Larm_path = []
+    Rarm_path = []
 
     print "This is a path planning simulation for the Baxter robot"
+
+    arm_response1 = raw_input("Would you like to move the left arm? (Y or N)")
+
+    if arm_response1 == 'Y':
+        Larm_flag = True
+        print "Input Theta in degrees"
+        theta1 = raw_input("Theta1 = ")
+        Larm_theta.append(float(theta1))
+        theta2 = raw_input("Theta2 = ")
+        Larm_theta.append(float(theta2))
+        theta3 = raw_input("Theta3 = ")
+        Larm_theta.append(float(theta3))
+        theta4 = raw_input("Theta4 = ")
+        Larm_theta.append(float(theta4))
+        theta5 = raw_input("Theta5 = ")
+        Larm_theta.append(float(theta5))
+        theta6 = raw_input("Theta6 = ")
+        Larm_theta.append(float(theta6))
+        theta7 = raw_input("Theta7 = ")
+        Larm_theta.append(float(theta7))
+
+    arm_response2 = raw_input("Would you like to move the right arm? (Y or N)")
+    if arm_response2 == 'Y':
+        Rarm_flag = True
+        print "Input Theta in degrees"
+        theta1 = raw_input("Theta1 = ")
+        Rarm_theta.append(float(theta1))
+        theta2 = raw_input("Theta2 = ")
+        Rarm_theta.append(float(theta2))
+        theta3 = raw_input("Theta3 = ")
+        Rarm_theta.append(float(theta3))
+        theta4 = raw_input("Theta4 = ")
+        Rarm_theta.append(float(theta4))
+        theta5 = raw_input("Theta5 = ")
+        Rarm_theta.append(float(theta5))
+        theta6 = raw_input("Theta6 = ")
+        Rarm_theta.append(float(theta6))
+        theta7 = raw_input("Theta7 = ")
+        Rarm_theta.append(float(theta7))
+
+    if Larm_flag == False:
+        Larm_theta = [0, 0, 0, 0, 0, 0, 0]
+
+    if Rarm_flag == False:
+        Rarm_theta = [0, 0, 0, 0, 0, 0, 0]
+
+    #check if thetas are valid
+    Rarm_theta = checkjointThetas(Rarm_theta)
+    Larm_theta = checkjointThetas(Larm_theta)
 
     clientID = initialize_sim()
     vrep.simxStartSimulation(clientID, vrep.simx_opmode_oneshot)
     joint_library, Larm_joints, Rarm_joints, body_joints, joint_bodynames, joint_Rarm, joint_Larm = declarejointvar(clientID)
     collision_library = getCollisionlib(clientID)
 
-    for theta_set in thetas:
-        movebody(clientID, Larm_joints, joint_Larm, theta_set, collision_library[0])
+    #generate path
 
-        movebody(clientID, Rarm_joints, joint_Rarm, theta_set, collision_library[1])
 
-        movebody(clientID, Larm_joints, joint_Larm, [0, 0, 0, 0, 0, 0], collision_library[0])
 
-        movebody(clientID, Rarm_joints, joint_Rarm, [0, 0, 0, 0, 0, 0], collision_library[1])
+
     # stop simulation
     vrep.simxStopSimulation(clientID, vrep.simx_opmode_oneshot)
 
