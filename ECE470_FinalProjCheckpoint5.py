@@ -366,7 +366,6 @@ def findpath(clientID, joint_dict, joint_name, collision_lib, theta_goal, left_r
     initial_theta = [0, 0, 0, 0, 0, 0, 0]
     joint_upperbound = [1.7016, 1.047, 3.0541, 2.618, 3.059, 2.094, 3.059]
     joint_lowerbound = [-1.7016, -2.147, -3.0541, -0.05, -3.059, -1.5707, -3.059]
-    range_theta = []
 
     theta_goal_rad = []
 
@@ -383,7 +382,7 @@ def findpath(clientID, joint_dict, joint_name, collision_lib, theta_goal, left_r
     backward = [theta_1]
 
     iter = 0
-    while iter <= 25:
+    while iter <= 50:
         print "Iter: " + str(iter)
         theta_comp = np.zeros(7)
         theta_comp[0] = (joint_upperbound[0] - joint_lowerbound[0]) * np.random.random_sample() + joint_lowerbound[0]
@@ -403,17 +402,15 @@ def findpath(clientID, joint_dict, joint_name, collision_lib, theta_goal, left_r
         for forward_theta in forward:
             close_node = forward_theta
 
-        for theta in theta_comp:
-            ind = theta_comp.index(theta)
-            jointname= joint_name[ind]
-            collision_bool = movejoint(clientID, joint_dict, jointname, theta, left_right, collision_lib)
-            if collision_bool == False:
+        for theta, joint in zip(theta_comp, joint_name):
+            collision_bool = movejoint(clientID, joint_dict, joint, theta, left_right, collision_lib)
+            if collision_bool == True:
                 break
 
-            if collision_bool == True:
+            if collision_bool == False:
                 continue
 
-        if collision_bool == False:
+        if collision_bool == True:
             iter += 1
             continue
 
@@ -424,20 +421,15 @@ def findpath(clientID, joint_dict, joint_name, collision_lib, theta_goal, left_r
         forward.append(theta_comp)
         inForward = True
 
+
+        print '2222222', forward
         for backward_theta in backward:
             close_node = backward_theta
 
-        if left_right == 'L':
-            lr_key = 'CL'
-        elif left_right == 'R':
-            lr_key = 'CR'
-        collision_handle = collision_lib[ir_key]
-        collision_bool = perform_collisiondetect(clientID, collision_handle)
 
-        if collision_bool == False:
-            theta_back = Node(theta_comp, close_node)
-            backward.append(theta_comp)
-            inBackward = True
+        theta_back = Node(theta_comp, close_node)
+        backward.append(theta_comp)
+        inBackward = True
 
         if inBackward and inForward == True:
             theta_path = [theta_newpos.theta]
@@ -455,13 +447,20 @@ def findpath(clientID, joint_dict, joint_name, collision_lib, theta_goal, left_r
     return False
 
 def executemovement(clientID, joint_dict, joint_name, collision_lib, theta_goal, left_right):
-
     path = findpath(clientID, joint_dict, joint_name, collision_lib, theta_goal, left_right)
 
     if path == False:
         print "Valid path not found!"
     else:
         print "Path: " + str(path)
+
+        for set in path:
+            for angle in set:
+                ind = set.index(angle)
+                angle = angle * (180/np.pi)
+                set[ind] = angle
+
+        print "Path in deg: " + str(path)
 
     return
 
@@ -538,7 +537,7 @@ def main():
     executemovement(clientID, Larm_jointsdict, joint_Larm, collision_library, Larm_theta, 'L')
 
     #path plan for R_joints
-    executemovement(clientID, Rarm_jointsdict, joint_Rarm, collision_library, Rarm_theta, 'R')
+    #executemovement(clientID, Rarm_jointsdict, joint_Rarm, collision_library, Rarm_theta, 'R')
 
     # stop simulation
     vrep.simxStopSimulation(clientID, vrep.simx_opmode_oneshot)
