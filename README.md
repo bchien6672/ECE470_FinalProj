@@ -72,3 +72,8 @@ The simulation may sometimes be wonky with the robot returning to the original p
 CheckPoint 5 (4/11)
 1. Uploaded framework that will be used for path planning
 2. Added in valid theta checking function
+3. Implemented tree structure for nodal placement
+4. Added in iterations for selecting thetas
+5. put in logic for moving the joints and using collision checking at the same time.
+
+Note: with additional dynamic script due to debugging being in the scene, the robot may start off awkwardly. Generated path to be found in the youtube description.
