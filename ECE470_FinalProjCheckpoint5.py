@@ -4,6 +4,13 @@ import time
 import numpy as np
 import scipy.linalg as la
 
+
+""" Node Class for Path Planning"""
+class Node:
+    def __init__(self, theta, parent):
+        self.theta = theta
+        self.parent = parent
+
 """ Matrix Calculations """ #Syntax is similar to public class repository
 def create_skewsym(input_matrix): #input_matrix must be 3 elements
     ss_matrix = np.zeros((3, 3))
@@ -270,8 +277,8 @@ def checkjointThetas(theta_list):
             continue
         else:
             print "Theta " + theta_list[i] + " does not fit within the bounds: " + joint_lowerbound[i] + ", " + joint_upperbound[i]
-
             theta_list[i] = 0
+
     return theta_list
 
 def declarejointvar(clientID):
@@ -309,7 +316,7 @@ def declarejointvar(clientID):
 
     return joint_library, Larm_joints, Rarm_joints, body_joints, joint_bodynames, joint_Rarm, joint_Larm
 
-""" Collision Detection Package"""
+""" Collision Detection Package and Path Planning """
 
 def getCollisionlib(clientID):
      collision_listL = ['C1L', 'C2L', 'C3L', 'C4L', 'C5L', 'C6L', 'C7L']
@@ -348,6 +355,66 @@ def movebody(clientID, joint_dict, joint_name, theta, collision):
         if collision_state == True:
             vrep.simxSetJointTargetPosition(clientID, joint_obj, 0, vrep.simx_opmode_oneshot)
             time.sleep(0.5)
+    return
+
+def movejoint(clientID, joint_dict, joint_name, theta):
+    joint_obj = joint_dict[joint_name]['Joint Handler']
+    res, theta_init = vrep.simxGetJointPosition(clientID, joint_obj, vrep.simx_opmode_blocking)
+    vrep.simxSetJointTargetPosition(clientID, joint_obj, theta_init + theta, vrep.simx_opmode_oneshot)
+    return
+
+def findpath(clientID, joint_dict, joint_name, collision_lib, theta_goal):
+    initial_theta = [0, 0, 0, 0, 0, 0, 0]
+    joint_upperbound = [1.7016, 1.047, 3.0541, 2.618, 3.059, 2.094, 3.059]
+    joint_lowerbound = [-1.7016, -2.147, -3.0541, -0.05, -3.059, -1.5707, -3.059]
+    range_theta = []
+
+    theta_goal_rad = []
+
+    #convert to rad
+    for theta in theta_goal_rad:
+        theta_rad = theta * (np.pi/180)
+        theta_goal_rad.append(theta_rad)
+
+    #initialize tree
+    theta_0 = Node(initial_theta, None)
+    theta_1 = Node(theta_goal_rad, None)
+
+    forward = [theta_0]
+    backward = [theta_1]
+
+    iter = 0
+    while iter <= 25:
+        print "Iter: " + iter
+        theta_comp = np.zeros(7)
+        theta_comp[0] = (joint_upperbound[0] - joint_lowerbound[0]) * np.random.random_sample() + joint_lowerbound[0]
+        theta_comp[1] = (joint_upperbound[1] - joint_lowerbound[1]) * np.random.random_sample() + joint_lowerbound[1]
+        theta_comp[2] = (joint_upperbound[2] - joint_lowerbound[2]) * np.random.random_sample() + joint_lowerbound[2]
+        theta_comp[3] = (joint_upperbound[3] - joint_lowerbound[3]) * np.random.random_sample() + joint_lowerbound[3]
+        theta_comp[4] = (joint_upperbound[4] - joint_lowerbound[4]) * np.random.random_sample() + joint_lowerbound[4]
+        theta_comp[5] = (joint_upperbound[5] - joint_lowerbound[5]) * np.random.random_sample() + joint_lowerbound[5]
+        theta_comp[6] = (joint_upperbound[6] - joint_lowerbound[6]) * np.random.random_sample() + joint_lowerbound[6]
+
+        min_dist = 9999999
+        inForward = False
+        inBackward = False
+
+        for theta in theta_comp:
+            ind = theta_comp.index(theta)
+            jointname= joint_name[ind]
+            movejoint(clientID, joint_dict, jointname, theta)
+
+
+    return theta_path
+
+def executemovement(clientID, joint_dict, joint_name, collision_lib, theta_goal):
+
+    #set up joint bounds
+    joint_upperbound = [97.494, 60, 174.987, 150, 175.25, 120, 175.25]
+    joint_lowerbound = [-97.494, -123, -174.987, -2.864, -175.25, -90, -175.25]
+
+    findpath(clientID, joint_dict, joint_name, collision_lib, theta_goal)
+
     return
 
 def main():
@@ -411,13 +478,17 @@ def main():
 
     clientID = initialize_sim()
     vrep.simxStartSimulation(clientID, vrep.simx_opmode_oneshot)
-    joint_library, Larm_joints, Rarm_joints, body_joints, joint_bodynames, joint_Rarm, joint_Larm = declarejointvar(clientID)
+    joint_library, Larm_jointsdict, Rarm_jointsdict, body_jointsdict, joint_bodynames, joint_Rarm, joint_Larm = declarejointvar(clientID)
     collision_library = getCollisionlib(clientID)
 
     #generate path
+    #Initial thetas are 0, desired goal thetas are user-input
 
+    #path plan for L_joints
+    executemovement(clientID, Larm_jointsdict, joint_Larm, collision_library, Larm_theta)
 
-
+    #path plan for R_joints
+    executemovement(clientID, Rarm_jointsdict, joint_Rarm, collision_library, Rarm_theta)
 
     # stop simulation
     vrep.simxStopSimulation(clientID, vrep.simx_opmode_oneshot)
