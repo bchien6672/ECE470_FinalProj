@@ -77,3 +77,8 @@ CheckPoint 5 (4/11)
 5. put in logic for moving the joints and using collision checking at the same time.
 
 Note: with additional dynamic script due to debugging being in the scene, the robot may start off awkwardly. Generated path to be found in the youtube description.
+
+Final Video (5/1)
+1. Redo ALL of major issues from the past five weeks.
+2. 
+
