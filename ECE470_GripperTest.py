@@ -88,18 +88,6 @@ def main():
     joint_library, Larm_jointsdict, Rarm_jointsdict, body_jointsdict, joint_bodynames, joint_Rarm, joint_Larm = declarejointvar(clientID)
     collision_library = getCollisionlib(clientID)
 
-    vrep.simxSetIntegerSignal(clientID, "BaxterGripperL_close", 0, vrep.simx_opmode_oneshot)
-    time.sleep(5)
-
-    vrep.simxSetIntegerSignal(clientID, "BaxterGripperR_close", 1, vrep.simx_opmode_oneshot)
-
-    time.sleep(5)
-
-    vrep.simxSetIntegerSignal(clientID, "BaxterGripperL_close", 1, vrep.simx_opmode_oneshot)
-    time.sleep(5)
-
-    vrep.simxSetIntegerSignal(clientID, "BaxterGripperR_close", 0, vrep.simx_opmode_oneshot)
-
     time.sleep(5)
 
     # stop simulation

@@ -148,7 +148,7 @@ def perform_FK(S_list, theta_list, M):
         S_mul = np.dot(item, theta)
         S_exp = la.expm(S_mul)
         S_explist.append(S_exp)
-    print theta_list
+   # print theta_list
     S_whole = np.linalg.multi_dot(S_explist)
     final_pose = np.dot(S_whole, M)
 
@@ -343,8 +343,58 @@ def main():
                               [0, 0, 1, 1.0117],
                               [0, 0, 0, 1]])
 
+    vrep.simxSetIntegerSignal(clientID, "BaxterGripperL_close", 1, vrep.simx_opmode_oneshot)
+    time.sleep(40)
+
+    res, theta = vrep.simxGetJointPosition(clientID, joint_library['Baxter_leftArm_joint5']['Joint Handler'], vrep.simx_opmode_blocking)
+
+    vrep.simxSetJointTargetPosition(clientID, joint_library['Baxter_leftArm_joint5']['Joint Handler'], theta - np.pi, vrep.simx_opmode_oneshot)
+    time.sleep(5)
+
+    res, theta = vrep.simxGetJointPosition(clientID, joint_library['Baxter_leftArm_joint1']['Joint Handler'], vrep.simx_opmode_blocking)
+
+    vrep.simxSetJointTargetPosition(clientID, joint_library['Baxter_leftArm_joint1']['Joint Handler'], theta + ((np.pi/2) - 0.35),vrep.simx_opmode_oneshot)
+
+    res, theta = vrep.simxGetJointPosition(clientID, joint_library['Baxter_leftArm_joint2']['Joint Handler'],
+                                           vrep.simx_opmode_blocking)
+
+    vrep.simxSetJointTargetPosition(clientID, joint_library['Baxter_leftArm_joint2']['Joint Handler'],
+                                    theta - (np.pi / 8), vrep.simx_opmode_oneshot)
+
+    time.sleep(3)
+
+    res, theta = vrep.simxGetJointPosition(clientID, joint_library['Baxter_leftArm_joint5']['Joint Handler'], vrep.simx_opmode_blocking)
+
+    vrep.simxSetJointTargetPosition(clientID, joint_library['Baxter_leftArm_joint5']['Joint Handler'],theta + (np.pi), vrep.simx_opmode_oneshot)
+
+
+    res, theta = vrep.simxGetJointPosition(clientID, joint_library['Baxter_rightArm_joint5']['Joint Handler'], vrep.simx_opmode_blocking)
+
+    vrep.simxSetJointTargetPosition(clientID, joint_library['Baxter_rightArm_joint5']['Joint Handler'],theta - (np.pi/2), vrep.simx_opmode_oneshot)
+
+    time.sleep(3)
+
+    res, theta = vrep.simxGetJointPosition(clientID, joint_library['Baxter_rightArm_joint1']['Joint Handler'],vrep.simx_opmode_blocking)
+
+    vrep.simxSetJointTargetPosition(clientID, joint_library['Baxter_rightArm_joint1']['Joint Handler'],theta + (np.pi / 6), vrep.simx_opmode_oneshot)
+
+    res, theta = vrep.simxGetJointPosition(clientID, joint_library['Baxter_rightArm_joint2']['Joint Handler'],
+                                           vrep.simx_opmode_blocking)
+
+    time.sleep(3)
+
+    vrep.simxSetJointTargetPosition(clientID, joint_library['Baxter_rightArm_joint2']['Joint Handler'],
+                                    theta + (np.pi / 4), vrep.simx_opmode_oneshot)
+
+    vrep.simxSetJointTargetPosition(clientID, joint_library['Baxter_rightArm_joint5']['Joint Handler'],
+                                    theta + (np.pi / 2), vrep.simx_opmode_oneshot)
+
+    #res, theta = vrep.simxGetJointPosition(clientID, joint_library['Baxter_leftArm_joint4']['Joint Handler'], vrep.simx_opmode_blocking)
+
+    #vrep.simxSetJointTargetPosition(clientID, joint_library['Baxter_leftArm_joint4']['Joint Handler'], theta + (np.pi/3), vrep.simx_opmode_oneshot)
+
     #move left arm to position
-    move_arm(clientID, Larm_jointsdict, joint_Larm, collision_library, "left")
+    #move_arm(clientID, Larm_jointsdict, joint_Larm, collision_library, "left")
 
     #grab_cup(clientID, "left")
 

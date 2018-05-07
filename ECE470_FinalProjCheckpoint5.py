@@ -337,7 +337,8 @@ def perform_collisiondetect(clientID, collision):
 def movebody(clientID, joint_dict, joint_name, theta, collision):
     for joint, theta_val in zip(joint_name, theta):
         joint_obj = joint_dict[joint]['Joint Handler']
-        vrep.simxSetJointTargetPosition(clientID, joint_obj, theta_val, vrep.simx_opmode_oneshot)
+        res, theta_0 = vrep.simxGetJointPosition(clientID, joint_obj, vrep.simx_opmode_blocking)
+        vrep.simxSetJointTargetPosition(clientID, joint_obj, theta_0 + theta_val, vrep.simx_opmode_oneshot)
         time.sleep(1)
         collision_state = perform_collisiondetect(clientID, collision)
         if collision_state == True:
@@ -382,7 +383,7 @@ def findpath(clientID, joint_dict, joint_name, collision_lib, theta_goal, left_r
     backward = [theta_1]
 
     iter = 0
-    while iter <= 50:
+    while iter <= 5:
         print "Iter: " + str(iter)
         theta_comp = np.zeros(7)
         theta_comp[0] = (joint_upperbound[0] - joint_lowerbound[0]) * np.random.random_sample() + joint_lowerbound[0]
@@ -421,8 +422,6 @@ def findpath(clientID, joint_dict, joint_name, collision_lib, theta_goal, left_r
         forward.append(theta_comp)
         inForward = True
 
-
-        print '2222222', forward
         for backward_theta in backward:
             close_node = backward_theta
 
