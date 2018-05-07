@@ -80,5 +80,14 @@ Note: with additional dynamic script due to debugging being in the scene, the ro
 
 Final Video (5/1)
 1. Redo ALL of major issues from the past five weeks.
-2. 
+2. Compose code for Baxter robot to be able to grasp an object
+3. Test initial gripping ability for Baxter
+4. Try orienting Baxter so that it can attempt to grasp the cup
+5. Upon finishing tests, begin writing general algorithm for video
+6. Find optimal position for Baxter to properly grasp the cup
+7. Decide on where to place the cup
+8. Add in additional obstacles for Baxter to avoid hitting and complicating the path
+9. Write in final code implementation and run simulation
+
+Areas of improvement: Consult final report
 
